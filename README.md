@@ -1,3 +1,5 @@
 # none
-#Hlo Hima Priya 
-Enti Ippudu na medha nammakam leda
+
+Hello Hima Priya,
+
+Don't you trust the power of me?
