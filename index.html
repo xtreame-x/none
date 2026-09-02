@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#121110" />
+<title>Lis-N</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- Icon sprite — no external icon set, drawn once and reused via <use> -->
+<svg class="sprite" aria-hidden="true">
+  <defs>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></symbol>
+    <symbol id="icon-prev" viewBox="0 0 24 24"><path d="M6 5h2v14H6zM19 5v14l-9-7z"/></symbol>
+    <symbol id="icon-next" viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM5 5v14l9-7z"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="20" y1="20" x2="15.8" y2="15.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></symbol>
+    <symbol id="icon-import" viewBox="0 0 24 24"><path d="M12 3v11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7.5 9.5L12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+
+  <!-- LIBRARY -->
+  <section class="view active" id="view-library" data-view="library">
+    <header class="view-header">
+      <h1>Library</h1>
+      <button class="icon-btn" id="import-btn" aria-label="Import music"><svg class="icon"><use href="#icon-import"/></svg></button>
+    </header>
+    <div class="list-wrap">
+      <ul class="song-list" id="library-list"></ul>
+      <nav class="alpha-index" id="alpha-index" aria-label="Jump to letter"></nav>
+    </div>
+  </section>
+
+  <!-- PLAYLISTS -->
+  <section class="view" id="view-playlists" data-view="playlists">
+    <header class="view-header">
+      <h1>Playlists</h1>
+      <button class="text-btn" id="new-playlist-btn">New</button>
+    </header>
+    <form class="new-playlist-form hidden" id="new-playlist-form">
+      <input type="text" id="new-playlist-name" placeholder="Playlist name" autocomplete="off" />
+      <button type="submit" class="pill-btn">Create</button>
+    </form>
+    <ul class="playlist-grid" id="playlist-grid"></ul>
+  </section>
+
+  <!-- PLAYLIST DETAIL -->
+  <section class="view" id="view-playlist-detail" data-view="playlist-detail">
+    <header class="view-header">
+      <button class="icon-btn back-btn" id="playlist-back-btn" aria-label="Back to playlists"><svg class="icon"><use href="#icon-chevron"/></svg></button>
+      <h1 id="playlist-detail-title">Playlist</h1>
+    </header>
+    <ul class="song-list" id="playlist-detail-list"></ul>
+  </section>
+
+  <!-- SEARCH -->
+  <section class="view" id="view-search" data-view="search">
+    <header class="view-header search-header">
+      <svg class="icon search-icon"><use href="#icon-search"/></svg>
+      <input type="search" id="search-input" placeholder="Search your library" autocomplete="off" />
+    </header>
+    <ul class="song-list" id="search-list"></ul>
+    <p class="empty-hint hidden" id="search-empty">No matches.</p>
+  </section>
+
+  <!-- MINI PLAYER (standard, non-modal bottom sheet) -->
+  <div class="mini-player hidden" id="mini-player">
+    <div class="mini-player-surface" id="mini-player-surface" role="button" tabindex="0" aria-label="Open now playing">
+      <img class="mini-art" id="mini-art" alt="" />
+      <div class="mini-meta">
+        <span class="mini-title" id="mini-title"></span>
+        <span class="mini-artist" id="mini-artist"></span>
+      </div>
+    </div>
+    <button class="icon-btn mini-playpause" id="mini-playpause" aria-label="Play"><svg class="icon"><use href="#icon-play"/></svg></button>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-btn active" data-view="library">Library</button>
+    <button class="nav-btn" data-view="playlists">Playlists</button>
+    <button class="nav-btn" data-view="search">Search</button>
+  </nav>
+
+  <!-- FULL PLAYER (full-screen sheet, expands from the mini player) -->
+  <div class="full-player hidden" id="full-player" aria-hidden="true">
+    <div class="full-player-bg" id="full-player-bg"></div>
+    <div class="full-player-scroll">
+      <header class="full-player-header" id="full-player-header">
+        <div class="grabber" id="grabber" role="button" tabindex="0" aria-label="Minimize player"></div>
+      </header>
+
+      <div class="art-wrap">
+        <img class="full-art" id="full-art" alt="" />
+      </div>
+
+      <div class="track-meta">
+        <h2 class="track-title" id="full-title"></h2>
+        <p class="track-artist" id="full-artist"></p>
+        <div class="mood-chips" id="mood-chips"></div>
+      </div>
+
+      <div class="seek-row">
+        <span class="time time-elapsed" id="time-elapsed">0:00</span>
+        <input type="range" class="seek-bar" id="seek-bar" min="0" max="100" value="0" step="0.1" aria-label="Seek" />
+        <span class="time time-duration" id="time-duration">0:00</span>
+      </div>
+
+      <div class="wheel" id="wheel">
+        <button class="wheel-btn wheel-prev" id="prev-btn" aria-label="Previous track"><svg class="icon"><use href="#icon-prev"/></svg></button>
+        <button class="wheel-center" id="playpause-btn" aria-label="Play"><svg class="icon icon-lg"><use href="#icon-play"/></svg></button>
+        <button class="wheel-btn wheel-next" id="next-btn" aria-label="Next track"><svg class="icon"><use href="#icon-next"/></svg></button>
+      </div>
+
+      <div class="eq-row" id="eq-row" role="group" aria-label="Equalizer preset"></div>
+
+      <div class="lyrics-panel" id="lyrics-panel"></div>
+
+      <p class="demo-note hidden" id="demo-note">Demo track — import a local file to hear real playback.</p>
+    </div>
+  </div>
+
+  <!-- Add-to-playlist popover (positioned near the row that opened it) -->
+  <div class="add-menu hidden" id="add-menu" role="menu"></div>
+
+  <input type="file" id="file-input" accept="audio/*" multiple hidden />
+  <audio id="audio" preload="metadata"></audio>
+
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
